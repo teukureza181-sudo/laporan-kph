@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Form Laporan Kegiatan - KPH Wilayah VIII Aceh</title>
+<script src="https://unpkg.com/pizzip@3.2.0/dist/pizzip.js"></script>
+<script src="https://unpkg.com/docxtemplater@3.68.5/build/docxtemplater.js"></script>
+<script src="https://unpkg.com/file-saver@1.3.8/FileSaver.js"></script>
+<style>
+  :root{
+    --green-900:#1b3a2b;
+    --green-700:#2d5a40;
+    --green-600:#3a7350;
+    --green-100:#e8f0ea;
+    --paper:#fbfaf7;
+    --ink:#1f2421;
+    --ink-soft:#5b645d;
+    --line:#cfd9d1;
+    --accent:#b5651d;
+    --error:#b3261e;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI', Arial, sans-serif;
+    background:var(--green-900);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  .topbar{
+    background:var(--green-900);
+    color:#fff;
+    padding:18px 16px 60px;
+    text-align:center;
+  }
+  .topbar h1{
+    margin:0 0 4px;
+    font-size:1.25rem;
+    font-weight:700;
+    letter-spacing:.2px;
+  }
+  .topbar p{
+    margin:0;
+    font-size:.85rem;
+    color:#cfe3d6;
+  }
+  .wrap{
+    max-width:640px;
+    margin:-40px auto 40px;
+    padding:0 14px;
+  }
+  .card{
+    background:var(--paper);
+    border-radius:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.18);
+    padding:20px 18px 24px;
+    margin-bottom:16px;
+  }
+  .card h2{
+    font-size:.95rem;
+    text-transform:uppercase;
+    letter-spacing:.6px;
+    color:var(--green-700);
+    margin:0 0 14px;
+    padding-bottom:8px;
+    border-bottom:2px solid var(--green-100);
+  }
+  label{
+    display:block;
+    font-size:.85rem;
+    font-weight:600;
+    color:var(--ink);
+    margin:14px 0 6px;
+  }
+  label .req{color:var(--error);}
+  label .hint{
+    font-weight:400;
+    color:var(--ink-soft);
+    font-size:.78rem;
+    display:block;
+    margin-top:1px;
+  }
+  input[type=text], input[type=date], input[type=email], select, textarea{
+    width:100%;
+    padding:11px 12px;
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    font-size:1rem;
+    font-family:inherit;
+    background:#fff;
+    color:var(--ink);
+  }
+  input:focus, select:focus, textarea:focus{
+    outline:none;
+    border-color:var(--green-600);
+  }
+  textarea{resize:vertical; min-height:64px;}
+  .kegiatan-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:4px;
+  }
+  .keg-btn{
+    border:1.5px solid var(--line);
+    background:#fff;
+    border-radius:10px;
+    padding:12px 8px;
+    text-align:center;
+    font-size:.82rem;
+    font-weight:600;
+    color:var(--ink-soft);
+    cursor:pointer;
+    line-height:1.3;
+  }
+  .keg-btn.active{
+    border-color:var(--green-600);
+    background:var(--green-100);
+    color:var(--green-700);
+  }
+  .row2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .photo-box{
+    margin-top:6px;
+    border:1.5px dashed var(--line);
+    border-radius:10px;
+    padding:14px;
+    text-align:center;
+    background:#fff;
+  }
+  .photo-box input{display:none;}
+  .photo-box img{
+    max-width:100%;
+    max-height:160px;
+    border-radius:6px;
+    margin-top:8px;
+    display:block;
+    margin-left:auto;
+    margin-right:auto;
+  }
+  .photo-label{
+    display:inline-block;
+    background:var(--green-100);
+    color:var(--green-700);
+    padding:8px 16px;
+    border-radius:8px;
+    font-size:.85rem;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .photo-name{
+    font-size:.75rem;
+    color:var(--ink-soft);
+    margin-top:6px;
+    word-break:break-all;
+  }
+  .submit-btn{
+    width:100%;
+    padding:15px;
+    background:var(--green-700);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    font-size:1.02rem;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:6px;
+    letter-spacing:.2px;
+  }
+  .submit-btn:active{background:var(--green-900);}
+  .submit-btn:disabled{background:#9ca39d; cursor:default;}
+  .note{
+    font-size:.78rem;
+    color:var(--ink-soft);
+    text-align:center;
+    margin-top:10px;
+    line-height:1.5;
+  }
+  .err-msg{
+    color:var(--error);
+    font-size:.8rem;
+    margin-top:4px;
+    display:none;
+  }
+  .footer-credit{
+    text-align:center;
+    color:#cfe3d6;
+    font-size:.72rem;
+    margin-top:18px;
+  }
+  .status-banner{
+    display:none;
+    background:#fff7e6;
+    border:1px solid #e8c46a;
+    color:#7a5c00;
+    border-radius:8px;
+    padding:10px 12px;
+    font-size:.82rem;
+    margin-bottom:14px;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Form Laporan Kegiatan</h1>
+  <p>KPHL Unit VIII Gayo Lues &middot; UPTD KPH Wilayah VIII Aceh</p>
+</div>
+
+<div class="wrap">
+
+  <div class="card">
+    <h2>Jenis Kegiatan</h2>
+    <div class="kegiatan-grid" id="kegiatanGrid">
+      <div class="keg-btn active" data-val="PATROLI">Patroli Rutin / Monitoring Perlindungan Hutan</div>
+      <div class="keg-btn" data-val="SOSIALISASI">Sosialisasi Kehutanan</div>
+      <div class="keg-btn" data-val="PENCEGAHAN">Pencegahan Kebakaran Hutan dan Lahan</div>
+      <div class="keg-btn" data-val="PENANGGULANGAN">Penanggulangan Kebakaran Hutan dan Lahan</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>A. Pelaksana</h2>
+    <label>Nama <span class="req">*</span></label>
+    <input type="text" id="nama" placeholder="Nama lengkap">
+
+    <label>NIP <span class="req">*</span></label>
+    <input type="text" id="nip" placeholder="Contoh: 19900101 201503 1 001">
+
+    <label>E-mail</label>
+    <input type="email" id="email" placeholder="nama@email.com">
+  </div>
+
+  <div class="card">
+    <h2>B. Waktu Pelaksanaan</h2>
+    <label>Tanggal Kegiatan <span class="req">*</span></label>
+    <input type="date" id="tanggal">
+    <div class="note" style="text-align:left; margin-top:4px;">Nama hari akan terisi otomatis sesuai tanggal.</div>
+  </div>
+
+  <div class="card">
+    <h2>C. Lokasi</h2>
+    <label>Desa <span class="req">*</span></label>
+    <input type="text" id="desa">
+
+    <div class="row2">
+      <div>
+        <label>Kecamatan <span class="req">*</span></label>
+        <input type="text" id="kecamatan">
+      </div>
+      <div>
+        <label>Kabupaten <span class="req">*</span></label>
+        <input type="text" id="kabupaten">
+      </div>
+    </div>
+
+    <label>Koordinat Lokasi
+      <span class="hint">Contoh: 4.1234, 97.1234 (boleh dikosongkan)</span>
+    </label>
+    <input type="text" id="koordinat" placeholder="lintang, bujur">
+  </div>
+
+  <div class="card">
+    <h2>D. Uraian Kegiatan</h2>
+    <label>Uraian Kegiatan 1 <span class="req">*</span></label>
+    <textarea id="uraian1" placeholder="Jelaskan kegiatan yang dilakukan..."></textarea>
+
+    <label>Uraian Kegiatan 2</label>
+    <textarea id="uraian2" placeholder="(boleh dikosongkan jika hanya 1 poin)"></textarea>
+  </div>
+
+  <div class="card">
+    <h2>E. Dokumentasi Kegiatan</h2>
+    <label>Foto 1</label>
+    <div class="photo-box">
+      <label class="photo-label" for="foto1">Pilih / Ambil Foto</label>
+      <input type="file" id="foto1" accept="image/*" capture="environment">
+      <div class="photo-name" id="foto1Name">Belum ada foto dipilih</div>
+      <img id="foto1Preview" style="display:none;">
+    </div>
+
+    <label>Foto 2</label>
+    <div class="photo-box">
+      <label class="photo-label" for="foto2">Pilih / Ambil Foto</label>
+      <input type="file" id="foto2" accept="image/*" capture="environment">
+      <div class="photo-name" id="foto2Name">Belum ada foto dipilih</div>
+      <img id="foto2Preview" style="display:none;">
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Pelaporan</h2>
+    <label>Tanggal Pelaporan <span class="req">*</span></label>
+    <input type="date" id="tglLapor">
+
+    <label>Nama Pembuat Laporan <span class="req">*</span></label>
+    <input type="text" id="namaPembuat" placeholder="Boleh sama dengan Nama Pelaksana">
+
+    <label>NIP Pembuat Laporan <span class="req">*</span></label>
+    <input type="text" id="nipPembuat">
+  </div>
+
+  <div class="status-banner" id="errBanner"></div>
+
+  <button class="submit-btn" id="submitBtn" onclick="generateLaporan()">Buat &amp; Unduh Laporan (.docx)</button>
+  <div class="note">File Word akan langsung diunduh ke perangkat ini, persis sesuai format resmi. Tidak ada data yang dikirim ke server / internet.<br>Untuk PDF: buka file Word yang diunduh lalu pilih <b>File &rarr; Save As / Export &rarr; PDF</b> (hasilnya pasti identik dengan format Word).</div>
+
+  <div class="footer-credit">KPH Wilayah VIII Aceh &mdash; Form Laporan Digital</div>
+</div>
+
+<script>
+const KEGIATAN_TITLES = {
+  PATROLI: "KEGIATAN PATROLI RUTIN/MONITORING PERLINDUNGAN HUTAN",
+  SOSIALISASI: "KEGIATAN SOSIALISASI KEHUTANAN",
+  PENCEGAHAN: "KEGIATAN PENCEGAHAN KEBAKARAN HUTAN DAN LAHAN",
+  PENANGGULANGAN: "KEGIATAN PENANGGULANGAN KEBAKARAN HUTAN DAN LAHAN"
+};
+
+let selectedKegiatan = "PATROLI";
+
+document.querySelectorAll('.keg-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.keg-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedKegiatan = btn.dataset.val;
+  });
+});
+
+const HARI_NAMES = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+const BULAN_NAMES = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+
+function formatTanggalIndo(dateStr){
+  if(!dateStr) return {hari:"", tanggal:""};
+  const d = new Date(dateStr + "T00:00:00");
+  const hari = HARI_NAMES[d.getDay()];
+  const tanggal = d.getDate() + " " + BULAN_NAMES[d.getMonth()] + " " + d.getFullYear();
+  return {hari, tanggal};
+}
+
+function setupPhotoPreview(inputId, nameId, previewId){
+  const input = document.getElementById(inputId);
+  const nameEl = document.getElementById(nameId);
+  const previewEl = document.getElementById(previewId);
+  input.addEventListener('change', ()=>{
+    const file = input.files[0];
+    if(!file){ nameEl.textContent = "Belum ada foto dipilih"; previewEl.style.display='none'; return; }
+    nameEl.textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = e=>{
+      previewEl.src = e.target.result;
+      previewEl.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+}
+setupPhotoPreview('foto1','foto1Name','foto1Preview');
+setupPhotoPreview('foto2','foto2Name','foto2Preview');
+
+function readFileAsDataURL(fileInput){
+  return new Promise((resolve)=>{
+    const file = fileInput.files[0];
+    if(!file){ resolve(null); return; }
+    const reader = new FileReader();
+    reader.onload = e=>resolve(e.target.result);
+    reader.readAsDataURL(file);
+  });
+}
+
+function getImageDims(dataUrl){
+  return new Promise((resolve)=>{
+    if(!dataUrl){ resolve(null); return; }
+    const img = new Image();
+    img.onload = ()=>resolve({w:img.width, h:img.height, src:dataUrl});
+    img.src = dataUrl;
+  });
+}
+
+function showError(msg){
+  const banner = document.getElementById('errBanner');
+  banner.textContent = msg;
+  banner.style.display = 'block';
+  banner.scrollIntoView({behavior:'smooth', block:'center'});
+}
+function clearError(){
+  document.getElementById('errBanner').style.display = 'none';
+}
+
+// ---- Path ke 4 file template Word resmi (upload file-file ini ke folder "templates/"
+//      pada hosting yang sama dengan file HTML ini) ----
+const TEMPLATE_FILES = {
+  PATROLI: 'templates/template_patroli.docx',
+  SOSIALISASI: 'templates/template_sosialisasi.docx',
+  PENCEGAHAN: 'templates/template_pencegahan.docx',
+  PENANGGULANGAN: 'templates/template_penanggulangan.docx'
+};
+
+function dataURLToUint8Array(dataURL){
+  const base64 = dataURL.split(',')[1];
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+function getExtFromDataURL(dataURL){
+  const m = dataURL.match(/^data:image\/(\w+);/);
+  let ext = m ? m[1].toLowerCase() : 'jpeg';
+  if(ext === 'jpg') ext = 'jpeg';
+  return ext;
+}
+
+// Menyisipkan foto langsung ke XML docx (menggantikan teks placeholder
+// dengan elemen <w:drawing> asli) -- tidak bergantung pada modul gambar
+// pihak ketiga yang sudah tidak terawat.
+function injectImageIntoZip(zip, marker, imgObj, relId, docPrId, mediaBaseName){
+  if(!imgObj) return;
+  const ext = getExtFromDataURL(imgObj.src);
+  const bytes = dataURLToUint8Array(imgObj.src);
+  const fileName = mediaBaseName + '.' + ext;
+  zip.file('word/media/' + fileName, bytes, {binary:true});
+
+  const relsPath = 'word/_rels/document.xml.rels';
+  let relsXml = zip.file(relsPath).asText();
+  const relEntry = '<Relationship Id="' + relId + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/' + fileName + '"/>';
+  relsXml = relsXml.replace('</Relationships>', relEntry + '</Relationships>');
+  zip.file(relsPath, relsXml);
+
+  const ctPath = '[Content_Types].xml';
+  let ctXml = zip.file(ctPath).asText();
+  const mime = ext === 'png' ? 'image/png' : (ext === 'gif' ? 'image/gif' : 'image/jpeg');
+  if(ctXml.indexOf('Extension="' + ext + '"') === -1){
+    ctXml = ctXml.replace('</Types>', '<Default Extension="' + ext + '" ContentType="' + mime + '"/></Types>');
+    zip.file(ctPath, ctXml);
+  }
+
+  const EMU_PER_CM = 360000;
+  let widthCm = 6.5, heightCm = widthCm * (imgObj.h / imgObj.w);
+  if(heightCm > 7){
+    heightCm = 7;
+    widthCm = heightCm * (imgObj.w / imgObj.h);
+  }
+  const cx = Math.round(widthCm * EMU_PER_CM);
+  const cy = Math.round(heightCm * EMU_PER_CM);
+
+  const drawingXml =
+    '<w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0">' +
+    '<wp:extent cx="' + cx + '" cy="' + cy + '"/>' +
+    '<wp:effectExtent l="0" t="0" r="0" b="0"/>' +
+    '<wp:docPr id="' + docPrId + '" name="Picture ' + docPrId + '"/>' +
+    '<wp:cNvGraphicFramePr><a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/></wp:cNvGraphicFramePr>' +
+    '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">' +
+    '<a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">' +
+    '<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">' +
+    '<pic:nvPicPr><pic:cNvPr id="' + docPrId + '" name="Picture ' + docPrId + '"/><pic:cNvPicPr/></pic:nvPicPr>' +
+    '<pic:blipFill><a:blip r:embed="' + relId + '"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>' +
+    '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + cx + '" cy="' + cy + '"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>' +
+    '</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing>';
+
+  const docPath = 'word/document.xml';
+  let docXml = zip.file(docPath).asText();
+  const tRegex = new RegExp('<w:t[^>]*>' + marker + '</w:t>');
+  if(tRegex.test(docXml)){
+    docXml = docXml.replace(tRegex, drawingXml);
+    zip.file(docPath, docXml);
+  } else {
+    console.warn('Penanda foto tidak ditemukan di dokumen:', marker);
+  }
+}
+
+async function generateLaporan(){
+  clearError();
+
+  const nama = document.getElementById('nama').value.trim();
+  const nip = document.getElementById('nip').value.trim();
+  const tanggalVal = document.getElementById('tanggal').value;
+  const desa = document.getElementById('desa').value.trim();
+  const kecamatan = document.getElementById('kecamatan').value.trim();
+  const kabupaten = document.getElementById('kabupaten').value.trim();
+  const koordinat = document.getElementById('koordinat').value.trim();
+  const uraian1 = document.getElementById('uraian1').value.trim();
+  const uraian2 = document.getElementById('uraian2').value.trim();
+  const tglLaporVal = document.getElementById('tglLapor').value;
+  const namaPembuat = document.getElementById('namaPembuat').value.trim();
+  const nipPembuat = document.getElementById('nipPembuat').value.trim();
+
+  const required = [
+    [nama,'Nama'], [nip,'NIP'], [tanggalVal,'Tanggal Kegiatan'],
+    [desa,'Desa'], [kecamatan,'Kecamatan'], [kabupaten,'Kabupaten'],
+    [uraian1,'Uraian Kegiatan 1'], [tglLaporVal,'Tanggal Pelaporan'],
+    [namaPembuat,'Nama Pembuat Laporan'], [nipPembuat,'NIP Pembuat Laporan']
+  ];
+  for(const [val, label] of required){
+    if(!val){
+      showError("Mohon isi field: " + label);
+      return;
+    }
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = "Membuat Laporan...";
+
+  try{
+    const { hari, tanggal } = formatTanggalIndo(tanggalVal);
+    const { tanggal: tglLapor } = formatTanggalIndo(tglLaporVal);
+
+    const foto1Data = await readFileAsDataURL(document.getElementById('foto1'));
+    const foto2Data = await readFileAsDataURL(document.getElementById('foto2'));
+    const foto1Img = await getImageDims(foto1Data);
+    const foto2Img = await getImageDims(foto2Data);
+
+    const templateUrl = TEMPLATE_FILES[selectedKegiatan];
+    const templateResp = await fetch(templateUrl);
+    if(!templateResp.ok){
+      throw new Error("Template " + templateUrl + " tidak ditemukan di server. Pastikan ke-4 file template sudah diupload ke folder 'templates/' pada hosting yang sama dengan halaman ini.");
+    }
+    const templateArrayBuffer = await templateResp.arrayBuffer();
+
+    const zip = new PizZip(templateArrayBuffer);
+    const dt = new window.docxtemplater(zip, {
+      paragraphLoop: true,
+      linebreaks: true,
+      delimiters: { start: '<<', end: '>>' }
+    });
+
+    const data = {
+      "NAMA": nama,
+      "NIP": nip,
+      "JABATAN": "Operator Layanan Oprasional",
+      "HARI": hari,
+      "TANGGAL": tanggal,
+      "DESA": desa,
+      "KECAMATAN": kecamatan,
+      "KABUPATEN": kabupaten,
+      "KOORDINAT LOKASI": koordinat || "-",
+      "URAIAN KEGIATAN 1": uraian1,
+      "URAIAN KEGIATAN 2": uraian2 || "-",
+      "FOTO 1": foto1Img ? "@@IMG1@@" : "(Tidak ada foto)",
+      "FOTO 2": foto2Img ? "@@IMG2@@" : "(Tidak ada foto)",
+      "TANGGAL PELAPORAN": tglLapor,
+      "NAMA PEMBUAT LAPORAN": namaPembuat,
+      "NIP PEMBUAT LAPORAN": nipPembuat
+    };
+
+    dt.render(data);
+    const outZip = dt.getZip();
+
+    injectImageIntoZip(outZip, '@@IMG1@@', foto1Img, 'rIdPhoto1', '9101', 'photo1');
+    injectImageIntoZip(outZip, '@@IMG2@@', foto2Img, 'rIdPhoto2', '9102', 'photo2');
+
+    const out = outZip.generate({
+      type: 'blob',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    });
+
+    const tanggalFileSafe = tanggalVal.replace(/-/g,'');
+    const namaFileSafe = nama.replace(/[^a-zA-Z0-9]+/g,'_');
+    const fileName = `Laporan_${selectedKegiatan}_${namaFileSafe}_${tanggalFileSafe}.docx`;
+
+    saveAs(out, fileName);
+
+  } catch(err){
+    console.error(err);
+    showError("Terjadi kesalahan saat membuat laporan: " + err.message);
+  } finally{
+    btn.disabled = false;
+    btn.textContent = "Buat & Unduh Laporan (.docx)";
+  }
+}
+</script>
+
+</body>
+</html>
